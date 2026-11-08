@@ -1,5 +1,5 @@
 {
-  "name": "@future-innovations-lk/wa-kit",
+  "name": "@futureinnovationslk/wa-kit",
   "version": "0.1.0",
   "description": "Interactive messages, carousels, newsletters and rich messages on top of official Baileys - no auto-anything.",
   "type": "module",

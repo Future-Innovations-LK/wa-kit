@@ -1,4 +1,4 @@
-# @future-innovations-lk/wa-kit
+# @futureinnovationslk/wa-kit
 
 Buttons, lists, carousels, albums, events, rich tables/links and newsletter
 helpers on top of **official Baileys** (`baileys@7.0.0-rc14`).
@@ -7,7 +7,7 @@ Replaces `ourin-baileys` (flagged malicious: MAL-2026-18412). **Nothing runs on
 its own** — no timers, no auto-follow, no network calls except the message you send.
 
 ```ts
-import { createKit, btn } from "@future-innovations-lk/wa-kit";
+import { createKit, btn } from "@futureinnovationslk/wa-kit";
 
 const kit = createKit(sock);
 
@@ -57,5 +57,5 @@ Official Baileys already covers the rest of the newsletter API
 
 ```bash
 pnpm install && pnpm build
-npm publish --access public   # needs an npm login with access to @future-innovations-lk
+npm publish --access public   # needs `npm login` as futureinnovationslk
 ```
