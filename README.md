@@ -37,11 +37,32 @@ await kit.buttons()
 | Table / key-value | `sendTable`, `sendKeyValue` | ✅ / ✅ |
 | Inline links | `sendLink`, `sendLinkV2` | ✅ / ✅ |
 | Channel badge ("View channel") | `channelBadge` | ✅ / ✅ |
-| Newsletter: resolve link, follow/unfollow many, isFollowing, post | `resolveNewsletter`, `followNewsletters`, ... | resolve untested |
+| Newsletter: resolve link, follow/unfollow many, isFollowing | `resolveNewsletter`, `followNewsletters`, ... | resolve untested |
+| Channel post (text / image / video, waits for WhatsApp's ack) | `postToChannel` | ✅ / ✅ |
+| Channel metadata as plain fields (name, followers, role, link...) | `newsletterInfo` | ✅ |
 | Tap parsing | `getTapId`, `getText` | ✅ |
 
 Official Baileys already covers the rest of the newsletter API
 (`sock.newsletterCreate/Follow/Mute/Update/ReactMessage/FetchMessages/...`).
+
+## Posting to a channel
+
+```ts
+import { postToChannel } from "@futureinnovationslk/wa-kit";
+
+await postToChannel(sock, "1203...@newsletter", { text: "Hello followers!" });
+const { serverId } = await postToChannel(sock, "1203...@newsletter", {
+  image: await readFile("banner.jpg"),
+  caption: "New stock",
+});
+await sock.newsletterReactMessage("1203...@newsletter", serverId!, "🔥");
+```
+
+Use `postToChannel` instead of `postToNewsletter` / `sock.sendMessage` for
+channels: in baileys 7.0.0-rc14 those upload channel media to the wrong
+endpoint (image/video posts never appear) and don't wait for WhatsApp to
+accept the post. Videos must be H.264/AAC MP4; pass `jpegThumbnail`,
+`width`, `height`, `seconds` for a nicer preview in the feed.
 
 ## Notes
 
@@ -52,6 +73,8 @@ Official Baileys already covers the rest of the newsletter API
   break; keep a plain-text fallback for anything important.
 - Taps arrive as `interactiveResponseMessage`; `getText(msg)` returns the
   button/row `id`, so give every button a full command as its id.
+  `getText` / `getTapId` / `getQuotedId` unwrap disappearing-message,
+  view-once (v1/v2) and document-with-caption wrappers.
 
 ## Build / publish
 

@@ -42,9 +42,12 @@ export {
   isFollowing,
   channelBadge,
   postToNewsletter,
+  newsletterInfo,
   type NewsletterMeta,
+  type NewsletterInfo,
   type BulkResult,
 } from "./newsletter.js";
+export { postToChannel, type ChannelContent, type ChannelPostResult, type ChannelPostOptions } from "./channelPost.js";
 export { getTapId, getText, getQuotedId } from "./taps.js";
 
 import type { WASocket } from "baileys";
@@ -53,6 +56,7 @@ import { Carousel, sendCarousel } from "./carousel.js";
 import { sendAlbum, sendEvent, sendPollResult, sendProduct, sendStatusMention } from "./messages.js";
 import { sendTable, sendKeyValue, sendLink, sendLinkV2 } from "./rich.js";
 import { resolveNewsletter, followNewsletters, unfollowNewsletters, isFollowing, postToNewsletter } from "./newsletter.js";
+import { postToChannel } from "./channelPost.js";
 
 export type Tail<F> = F extends (sock: WASocket, ...rest: infer R) => infer Ret ? (...args: R) => Ret : never;
 const bind = <F extends (sock: WASocket, ...a: never[]) => unknown>(sock: WASocket, fn: F) =>
@@ -88,6 +92,7 @@ export function createKit(sock: WASocket): Kit {
       unfollowMany: bind(sock, unfollowNewsletters),
       isFollowing: bind(sock, isFollowing),
       post: bind(sock, postToNewsletter),
+      postToChannel: bind(sock, postToChannel),
     },
   };
 }
@@ -114,6 +119,8 @@ export interface Kit {
     followMany: Tail<typeof followNewsletters>;
     unfollowMany: Tail<typeof unfollowNewsletters>;
     isFollowing: Tail<typeof isFollowing>;
+    /** text only - use postToChannel for media */
     post: Tail<typeof postToNewsletter>;
+    postToChannel: Tail<typeof postToChannel>;
   };
 }

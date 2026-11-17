@@ -1,6 +1,6 @@
 {
   "name": "@futureinnovationslk/wa-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Interactive messages, carousels, newsletters and rich messages on top of official Baileys - no auto-anything.",
   "type": "module",
   "main": "dist/index.js",
@@ -13,7 +13,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

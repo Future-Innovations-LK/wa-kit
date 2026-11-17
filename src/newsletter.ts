@@ -118,7 +118,12 @@ export function channelBadge(
   };
 }
 
-/** Post text/media to a channel you own (thin wrapper so callers don't forget the @newsletter JID). */
+/**
+ * Post TEXT to a channel you own (thin sock.sendMessage wrapper).
+ * @deprecated for media - image/video posts sent this way never show up in
+ * baileys 7.0.0-rc14. Use postToChannel(), which also works for text and
+ * waits for WhatsApp to confirm the post.
+ */
 export function postToNewsletter(
   sock: WASocket,
   jid: string,
@@ -126,4 +131,64 @@ export function postToNewsletter(
 ): Promise<WAMessage | undefined> {
   if (!jid.endsWith("@newsletter")) throw new Error("wa-kit: postToNewsletter needs a xxx@newsletter JID");
   return sock.sendMessage(jid, content);
+}
+
+type Loose = Record<string, unknown>;
+
+/** WhatsApp returns flat fields or the raw thread_metadata ({ name: { text } }) depending on the query. */
+function pick(meta: Loose, flat: string, nested: string): string | undefined {
+  const tm = meta.thread_metadata as Loose | undefined;
+  const v = meta[flat] ?? tm?.[nested];
+  if (v == null) return undefined;
+  if (typeof v === "object") return String((v as Loose).text ?? "");
+  return String(v);
+}
+
+export interface NewsletterInfo {
+  jid: string;
+  name: string;
+  description: string;
+  subscribers: number | null;
+  invite: string | null;
+  inviteLink: string | null;
+  verified: boolean;
+  /** this account's role: OWNER, ADMIN, SUBSCRIBER, GUEST... (null = unknown) */
+  role: string | null;
+  muted: boolean | null;
+  /** ISO date-time */
+  createdAt: string | null;
+  pictureUrl: string | null;
+}
+
+/** newsletterMetadata() / resolveNewsletter() result -> plain, predictable fields. */
+export function newsletterInfo(meta: NewsletterMeta): NewsletterInfo {
+  const m = meta as unknown as Loose;
+  const tm = (m.thread_metadata ?? {}) as Loose;
+  const viewer = (m.viewer_metadata ?? m.viewerMetadata ?? {}) as Loose;
+  const created = Number(pick(m, "creation_time", "creation_time"));
+  const subs = pick(m, "subscribers", "subscribers_count");
+  const picture = (m.picture ?? tm.picture ?? tm.preview) as Loose | string | undefined;
+  const invite = pick(m, "invite", "invite") ?? null;
+  const mute = (viewer.mute ?? m.mute_state) as string | undefined;
+
+  return {
+    jid: meta.id,
+    name: pick(m, "name", "name") || "",
+    description: pick(m, "description", "description") || "",
+    subscribers: subs && !Number.isNaN(Number(subs)) ? Number(subs) : null,
+    invite,
+    inviteLink: invite ? `https://whatsapp.com/channel/${invite}` : null,
+    verified: pick(m, "verification", "verification") === "VERIFIED",
+    role: viewer.role ? String(viewer.role).toUpperCase() : null,
+    muted: mute ? String(mute).toUpperCase() === "ON" : null,
+    createdAt: created ? new Date(created * 1000).toISOString() : null,
+    pictureUrl:
+      typeof picture === "string"
+        ? picture
+        : picture?.url
+          ? String(picture.url)
+          : picture?.direct_path
+            ? `https://mmg.whatsapp.net${String(picture.direct_path)}`
+            : null,
+  };
 }
